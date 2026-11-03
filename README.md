@@ -7,6 +7,7 @@
 | 檔案 | 說明 |
 | --- | --- |
 | `index.html` | 雛型本體（單一 HTML，直接用瀏覽器開啟即可操作） |
+| `slides.html` | 第一週 Demo 簡報（用 Chrome 開啟；← → 切換、F 全螢幕） |
 | `tokens.css`、`design-system.md` | 迷你設計系統 |
 | `data/` | 模擬資料（`exams.json`、`phrases.json`） |
 | `images/` | 影像示意圖 |
