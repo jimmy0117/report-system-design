@@ -1,0 +1,15 @@
+{
+  "健檢胸部X光": {
+    "Lung": ["No active lung lesion.", "Increased lung markings in both lungs."],
+    "Others": ["Normal heart size.", "Mild scoliosis of thoracic spine."],
+    "Suggestion": ["Follow-up as clinically indicated.", "Suggest further evaluation with chest CT."]
+  },
+  "健檢乳攝": {
+    "Findings": ["Scattered areas of fibroglandular density."],
+    "Diagnosis": ["BI-RADS 1: Negative.", "BI-RADS 2: Benign finding."]
+  },
+  "門診放射": {
+    "Finding": ["No active lung lesion.", "No obvious bony abnormality."],
+    "Impression": ["No significant abnormality."]
+  }
+}

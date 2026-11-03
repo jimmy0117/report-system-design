@@ -1,0 +1,50 @@
+/* 影像報告撰寫系統 — 迷你設計系統
+   每個變數的用途與使用規則見 design-system.md。
+   修改或新增變數時，先更新 design-system.md 的「變更紀錄」，再改畫面。 */
+
+:root {
+  /* 色彩：基本 */
+  --color-primary: #1f5fa8;
+  --color-primary-hover: #174b86;
+  --color-on-primary: #ffffff;
+  --color-bg: #ffffff;
+  --color-surface: #f5f7fa;
+  --color-text: #1f2933;
+  --color-text-muted: #5f6b7a;
+  --color-border: #d5dbe3;
+  --color-focus: #0b57d0;
+  --color-danger: #b42318;
+  --color-danger-bg: #fdecea;
+
+  /* 色彩：報告狀態（每種狀態：文字/邊框色 + 淡底色；一律搭配圖示與文字，不單靠顏色）
+     選用方案 A「橘／藍／綠／灰」，與其他方案的比較見 design-system.md */
+  --status-pending: #a64b00;        /* 未完成：橘棕 */
+  --status-pending-bg: #fff4e5;
+  --status-done: #1f5fa8;           /* 已完成：藍 */
+  --status-done-bg: #e8f1fb;
+  --status-certified: #17653f;      /* 已認證：綠 */
+  --status-certified-bg: #e6f4ec;
+  --status-dc: #5f6b7a;             /* 醫令已 DC：灰（另加刪除線） */
+  --status-dc-bg: #eceff3;
+
+  /* 字級 */
+  --font-family: "Noto Sans TC", "Microsoft JhengHei", "PingFang TC", sans-serif;
+  --font-size-sm: 13px;
+  --font-size-md: 15px;
+  --font-size-lg: 18px;
+  --font-size-xl: 22px;
+  --font-size-display: 36px;   /* 未完成數量專用 */
+
+  /* 間距 */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+
+  /* 圓角 */
+  --radius: 6px;
+
+  /* 控制項最小高度（點擊範圍） */
+  --control-height: 36px;
+}
