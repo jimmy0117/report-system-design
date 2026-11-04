@@ -38,14 +38,22 @@
     .tag-plain { color: var(--color-text-muted); background: var(--color-bg); font-weight: 400; }
     .tag-waiting { color: var(--status-waiting); background: var(--status-waiting-bg); border-style: dashed; }
     .tag-recall { color: var(--status-recall); background: var(--status-recall-bg); }
-    .tag-overdue { color: var(--deadline-overdue); background: var(--deadline-overdue-bg); border-color: var(--deadline-overdue-bg); }
-    .tag-soon { color: var(--deadline-soon); background: var(--deadline-soon-bg); }
     .tags { display: inline-flex; flex-wrap: wrap; gap: var(--space-1); }
     .src { font-size: var(--font-size-sm); color: var(--color-text-muted); }
     .topbar select { min-height: 28px; border-radius: var(--radius); border: 1px solid var(--color-border); padding: 0 var(--space-2); background: var(--color-bg); color: var(--color-text); }
     tr.st-waiting td { background: var(--color-bg); color: var(--color-text-muted); }
     tr.st-waiting td:first-child { border-left: 4px dashed var(--status-waiting); }
-    .banner-overdue { color: var(--deadline-soon); background: var(--deadline-soon-bg); border-color: var(--deadline-soon); }
+    .banner-batch { color: var(--status-done); background: var(--status-done-bg); border-color: var(--status-done); }
+    /* v4：批次選取 */
+    .bulkbar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); margin-bottom: var(--space-2); padding: var(--space-2) var(--space-4);
+      background: var(--glass-bg-strong); border: 1px solid var(--glass-border); border-radius: var(--radius-lg); box-shadow: var(--shadow-soft); font-size: var(--font-size-sm); }
+    .bulkbar.active { border-color: var(--color-primary); }
+    .bulkbar b { font-size: var(--font-size-md); }
+    .bulkbar input[type="text"] { min-height: var(--control-height); padding: 0 var(--space-2); border: 1px solid var(--color-border); border-radius: var(--radius); min-width: 140px; }
+    .bulkbar .err { color: var(--color-danger); }
+    td.sel, th.sel { width: 36px; text-align: center; }
+    td.sel input, th.sel input { width: 18px; height: 18px; cursor: pointer; }
+    td.sel input:disabled { cursor: not-allowed; }
     .banner-recall { color: var(--status-recall); background: var(--status-recall-bg); border-color: var(--status-recall); }
     .cancel-box { margin-bottom: var(--space-3); border-color: var(--color-danger); }
     .cancel-box textarea { min-height: 56px; }
@@ -198,7 +206,9 @@
         background: var(--glass-bg-strong); box-shadow: var(--shadow-soft); }
       tbody tr td, tbody tr:hover td { background: transparent; border: 0 !important; padding: 0; white-space: normal; }
       tbody td::before { content: attr(data-label); display: block; font-size: var(--font-size-xs); color: var(--color-text-muted); letter-spacing: .06em; }
-      tbody td[data-label="報告狀態"], tbody td[data-label="操作"] { grid-column: 1 / -1; }
+      tbody td[data-label="報告狀態"], tbody td[data-label="操作"], tbody td[data-label="選取"] { grid-column: 1 / -1; }
+      tbody td[data-label="選取"] { text-align: left; display: flex; align-items: center; gap: var(--space-2); }
+      tbody td[data-label="選取"]::before { display: inline; }
       tbody td[data-label="操作"]::before { display: none; }
       tbody td[data-label="操作"] .btn { width: 100%; min-height: var(--control-height); }
       tr.st-pending { background: var(--status-pending-bg); border-left-color: var(--status-pending); }
@@ -224,7 +234,7 @@
     <h1>影像報告撰寫系統</h1>
     <span class="who">
       <label for="who">登入身分（雛型切換用）：</label>
-      <select id="who"><option>醫師甲</option><option>醫師丙</option></select>
+      <select id="who"><option>醫師甲</option><option>醫師丙</option><option>放射師</option></select>
       ・資料時間 <strong id="now"></strong>
     </span>
   </header>
@@ -264,9 +274,9 @@
     '待指派':   { cls: 'waiting', icon: '⇢' }
   };
   var STATUS_ORDER = { '等待影像': 0, '待指派': 1, '未完成': 2, '已完成': 3, '已認證': 4 };
-  // 雛型的「現在時間」固定，讓時限標示每次都一樣（設計變數：健檢報告 48 小時內完成，見 README）
+  // 雛型的「現在時間」固定，畫面上的資料時間每次都一樣
   var NOW = new Date('2026-11-04T09:00:00');
-  var DEADLINE_HOURS = 48, SOON_HOURS = 12;
+
   var COLS = [
     { k: 'exam_no', t: '單號' }, { k: 'exam_at', t: '檢查日期時間' }, { k: 'category', t: '檢查類別' },
     { k: 'exam_name', t: '檢查名稱' }, { k: 'order_dept', t: '開單單位' }, { k: 'order_doctor', t: '開單醫師' },
@@ -283,7 +293,27 @@
     var tpl = TEMPLATES[e.category] || [], ph = PHRASES[e.category] || {};
     tpl.forEach(function (f) { var list = ph[f.key]; reports[e.exam_no].fields[f.key] = list ? list[0] : ''; });
   });
-  var filters = { doctor: ME, status: '', category: '', dept: '', orderDoc: '', date: '', q: '', showDcUnshot: false };
+  // 設計變數六：醫師與放射師共用同一個工作清單畫面，依登入角色切換預設篩選、摘要與可用操作
+  function isRad() { return ME === '放射師'; }
+  function defaultFilters() { return { doctor: isRad() ? '' : ME, status: '', category: '', dept: '', orderDoc: '', date: '', q: '', showDcUnshot: false }; }
+  var filters = defaultFilters();
+  // 設計變數五：正常範本（只用於胸部X光；內容取自片語範例，僅供雛型使用，不是臨床標準用語）
+  var NORMAL = {
+    '胸部X光數位攝影': { Lung: 'No active lung lesion.', Others: 'Normal heart size.', Suggestion: 'Follow-up as clinically indicated.' },
+    '胸部X光（正面）': { Finding: 'No active lung lesion.', Impression: 'No significant abnormality.' }
+  };
+  var DOCTORS = ['醫師甲', '醫師丙'];   // 可指派的報告醫師（取自模擬資料）
+  var selected = {};   // 勾選中的單號
+  var batch = null;    // 批次確認：{ queue: [單號], total: n, certified: n }
+  function selectable(e) {
+    if (isRad()) return !isDc(e) && e.image_taken && e.report_status === '未完成';
+    return actionable(e) && !!NORMAL[e.exam_name];
+  }
+  function whyNotSelectable(e) {
+    if (isRad()) return isDc(e) ? '醫令已DC' : !e.image_taken ? '請先取回影像，才能指派' : '報告已完成，不需指派';
+    if (!actionable(e)) return '不是你的未完成報告';
+    return '此檢查沒有正常範本（目前只有胸部X光）';
+  }
   var sort = { key: 'exam_at', dir: 1 };
 
   /* ===== 小工具 ===== */
@@ -318,15 +348,7 @@
     if (e.report_status === '未完成' && !e.report_doctor) return '待指派';
     return e.report_status;
   }
-  // 設計變數（自編）：健檢報告須於檢查後 48 小時內完成認證
-  function deadlineOf(e) {
-    if (e.category.indexOf('健檢') !== 0 || e.report_status === '已認證' || isDc(e)) return null;
-    var due = new Date(e.exam_at.replace(' ', 'T') + ':00'); due.setHours(due.getHours() + DEADLINE_HOURS);
-    var left = (due - NOW) / 36e5;
-    return { due: due, left: left, overdue: left < 0, soon: left >= 0 && left <= SOON_HOURS };
-  }
   function fmtTime(d) { function p(n) { return (n < 10 ? '0' : '') + n; } return (d.getMonth() + 1) + '/' + d.getDate() + ' ' + p(d.getHours()) + ':' + p(d.getMinutes()); }
-  function fmtLeft(hrs) { return hrs >= 1 ? Math.floor(hrs) + ' 小時' : Math.max(1, Math.round(hrs * 60)) + ' 分鐘'; }
   function toast(msg) {
     var t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show');
     clearTimeout(toast.t); toast.t = setTimeout(function () { t.classList.remove('show'); }, 3200);
@@ -340,18 +362,11 @@
   }
   function dcTag() { return tag('dc', '⊘', '醫令已DC'); }
   function recallTag() { return tag('recall', '↺', '取消認證・待重打'); }
-  function deadlineTag(dl) {
-    if (!dl) return null;
-    if (dl.overdue) return tag('overdue', '⏰', '已逾時', '期限 ' + fmtTime(dl.due));
-    if (dl.soon) return tag('soon', '⏳', '剩 ' + fmtLeft(dl.left), '期限 ' + fmtTime(dl.due));
-    return null;
-  }
-  // 狀態標籤組：主要狀態 + 修飾標籤（DC、取消認證、時限）
+  // 狀態標籤組：主要狀態 + 修飾標籤（DC、取消認證）
   function tagGroup(e) {
     var g = h('span', { class: 'tags' }, statusTag(e));
     if (isDc(e)) g.appendChild(dcTag());
     if (e.recalled && e.report_status === '未完成') g.appendChild(recallTag());
-    var dt = deadlineTag(deadlineOf(e)); if (dt) g.appendChild(dt);
     return g;
   }
 
@@ -388,6 +403,7 @@
   /* ===== 工作清單畫面 ===== */
   var ui = {};
   function renderList() {
+    batch = null;   // 回到清單即結束批次確認
     var app = document.getElementById('app'); app.textContent = '';
     ui = {};
     app.appendChild(h('p', { class: 'proto-note', text: '雛型使用模擬資料，姓名與身分證字號皆為虛構；重新整理頁面會恢復原狀。' }));
@@ -419,14 +435,21 @@
         h('input', { type: 'checkbox', checked: filters.showDcUnshot, onchange: function (ev) { filters.showDcUnshot = ev.target.checked; update(); } }),
         '顯示「已DC且未照」的單'),
       h('button', { class: 'btn', type: 'button', onclick: function () {
-        filters = { doctor: ME, status: '', category: '', dept: '', orderDoc: '', date: '', q: '', showDcUnshot: false }; renderList();
-      } }, '回到預設（我的報告）')
+        filters = defaultFilters(); selected = {}; renderList();
+      } }, isRad() ? '回到預設（全部檢查）' : '回到預設（我的報告）')
     ));
 
     ui.count = h('p', { class: 'result-count', 'aria-live': 'polite' });
     app.appendChild(ui.count);
 
+    ui.bulk = h('div', { class: 'bulkbar', role: 'region', 'aria-label': '批次操作', 'aria-live': 'polite' });
+    app.appendChild(ui.bulk);
     var thead = h('tr');
+    ui.selAll = h('input', { type: 'checkbox', 'aria-label': '全選可勾選的檢查', onchange: function (ev) {
+      visibleList().forEach(function (e) { if (selectable(e)) { if (ev.target.checked) selected[e.exam_no] = true; else delete selected[e.exam_no]; } });
+      update();
+    } });
+    thead.appendChild(h('th', { scope: 'col', class: 'sel' }, ui.selAll));
     COLS.forEach(function (c) {
       var arrow = h('span', { class: 'arrow', 'aria-hidden': 'true' });
       var th = h('th', { scope: 'col' }, h('button', { type: 'button', onclick: function () {
@@ -450,6 +473,7 @@
   }
 
   function renderSummary() {
+    if (isRad()) return renderRadSummary();
     var mine = EXAMS.filter(function (e) { return e.report_doctor === ME && !hiddenByDc(e); });
     var pending = mine.filter(actionable);
     var byCat = {};
@@ -458,8 +482,6 @@
     var unassigned = EXAMS.filter(function (e) { return !e.report_doctor && !hiddenByDc(e); }).length;
     var dcKept = mine.filter(isDc).length;
     var s = ui.summary; s.textContent = '';
-    var overdue = pending.filter(function (e) { var d = deadlineOf(e); return d && d.overdue; }).length;
-    var soon = pending.filter(function (e) { var d = deadlineOf(e); return d && d.soon; }).length;
     var first = pending.slice().sort(function (a, b) { return a.exam_at.localeCompare(b.exam_at); })[0];
 
     s.appendChild(h('div', { class: 'big' },
@@ -475,10 +497,6 @@
         c, h('b', { text: String(n) })));
     });
     s.appendChild(chips);
-    if (overdue || soon) s.appendChild(h('div', { class: 'chips' },
-      overdue ? tag('overdue', '⏰', '已逾時 ' + overdue + ' 份') : null,
-      soon ? tag('soon', '⏳', '12 小時內到期 ' + soon + ' 份') : null,
-      h('span', { class: 'src', text: '健檢報告須於檢查後 48 小時內完成' })));
     // 替代方案 C 的優點：一鍵開始下一份（依檢查時間，最早的先打）
     s.appendChild(h('button', { type: 'button', class: 'btn btn-primary', disabled: !first,
       onclick: function () { location.hash = '#/report/' + first.exam_no; } },
@@ -488,6 +506,72 @@
     side.appendChild(h('span', null, '尚未指派報告醫師：' + unassigned + ' 筆 ',
       h('button', { class: 'linkbtn', type: 'button', onclick: function () { setFilterAndUpdate({ doctor: '未指派', status: '', category: '' }); } }, '查看')));
     s.appendChild(side);
+  }
+
+  // 放射師的摘要：同一個畫面，換成放射師要看的數字
+  function renderRadSummary() {
+    var vis = EXAMS.filter(function (e) { return !hiddenByDc(e); });
+    function cnt(st) { return vis.filter(function (e) { return stageOf(e) === st && !isDc(e); }).length; }
+    var s = ui.summary; s.textContent = '';
+    s.appendChild(h('div', { class: 'big' }, h('span', { class: 'label', text: '待指派報告醫師' }),
+      h('span', { class: 'num', text: String(cnt('待指派')) }), h('span', { class: 'total', text: '筆' })));
+    var chips = h('div', { class: 'chips', role: 'group', 'aria-label': '依流程階段篩選' });
+    [['等待影像', '⧗'], ['待指派', '⇢'], ['未完成', '○']].forEach(function (x) {
+      var on = filters.status === x[0] && filters.doctor === '';
+      chips.appendChild(h('button', { type: 'button', class: 'chip', 'aria-pressed': String(on),
+        onclick: function () { setFilterAndUpdate(on ? { status: '' } : { doctor: '', status: x[0], category: '' }); } },
+        x[1] + ' ' + (x[0] === '未完成' ? '已指派・待醫師撰寫' : x[0]), h('b', { text: String(cnt(x[0])) })));
+    });
+    s.appendChild(chips);
+    s.appendChild(h('div', { class: 'side' }, h('span', null, '與醫師共用同一個工作清單；目前顯示放射師的預設篩選與操作。')));
+  }
+
+  function renderBulk() {
+    var b = ui.bulk; b.textContent = '';
+    var vis = visibleList();
+    Object.keys(selected).forEach(function (no) { var e = byNo(no); if (!selectable(e) || vis.indexOf(e) < 0) delete selected[no]; });
+    var nos = vis.filter(function (e) { return selected[e.exam_no]; }).map(function (e) { return e.exam_no; });
+    var selectableCount = vis.filter(selectable).length;
+    ui.selAll.checked = selectableCount > 0 && nos.length === selectableCount;
+    ui.selAll.indeterminate = nos.length > 0 && nos.length < selectableCount;
+    ui.selAll.disabled = selectableCount === 0;
+    b.classList.toggle('active', nos.length > 0);
+    if (!nos.length) {
+      b.appendChild(h('span', { class: 'src', text: isRad()
+        ? '勾選已取回影像的檢查，可一次指派報告醫師。'
+        : '勾選胸部X光的未完成報告，可一次帶入正常範本，再逐筆看影像確認後認證。' }));
+      return;
+    }
+    b.appendChild(h('span', null, '已選 ', h('b', { text: String(nos.length) }), (isRad() ? ' 筆：' : ' 份：') + nos.join('、')));
+    if (isRad()) {
+      var input = h('input', { type: 'text', id: 'assign-to', list: 'doctor-list', placeholder: '輸入或選擇醫師', 'aria-label': '指派給哪位報告醫師' });
+      var dl = h('datalist', { id: 'doctor-list' }); DOCTORS.forEach(function (d) { dl.appendChild(h('option', { value: d })); });
+      var err = h('span', { class: 'err', 'aria-live': 'polite' });
+      b.appendChild(h('label', { for: 'assign-to', text: '指派給' })); b.appendChild(input); b.appendChild(dl);
+      b.appendChild(h('button', { type: 'button', class: 'btn btn-primary', onclick: function () {
+        var d = input.value.trim();
+        if (DOCTORS.indexOf(d) < 0) { err.textContent = '請從清單選擇一位報告醫師（可輸入「甲」搜尋）'; input.focus(); return; }
+        nos.forEach(function (no) { var e = byNo(no); e.report_doctor = d; delete e.recalled; });
+        selected = {}; toast('已將 ' + nos.join('、') + ' 指派給' + d); update();
+      } }, '指派'));
+      b.appendChild(err);
+    } else {
+      b.appendChild(h('button', { type: 'button', class: 'btn btn-primary', onclick: function () { startBatch(nos); } }, '帶入正常範本並逐筆確認 →'));
+      b.appendChild(h('span', { class: 'src', text: '每份仍會顯示影像，確認無誤才認證；有異常可直接修改。' }));
+    }
+    b.appendChild(h('button', { type: 'button', class: 'btn btn-sm', onclick: function () { selected = {}; update(); } }, '取消選取'));
+  }
+
+  function startBatch(nos) {
+    nos.forEach(function (no) {
+      var e = byNo(no), n = NORMAL[e.exam_name], f = reports[no].fields;
+      Object.keys(n).forEach(function (k) { if (!f[k]) f[k] = n[k]; });
+    });
+    selected = {};
+    var queue = nos.slice();
+    location.hash = '#/report/' + queue[0];
+    batch = { queue: queue, total: queue.length, certified: 0 };
+    toast('已帶入正常範本：' + queue.length + ' 份，請逐筆確認');
   }
 
   function update() {
@@ -508,6 +592,11 @@
       var tr = h('tr', { class: cls, tabindex: '0', onclick: open,
         onkeydown: function (ev) { if (ev.key === 'Enter') open(); },
         'aria-label': e.exam_no + ' ' + e.exam_name + ' ' + tagGroup(e).textContent });
+      var can = selectable(e);
+      tr.appendChild(h('td', { class: 'sel', onclick: function (ev) { ev.stopPropagation(); } },
+        h('input', { type: 'checkbox', checked: !!selected[e.exam_no], disabled: !can, title: can ? '選取' : whyNotSelectable(e),
+          'aria-label': '選取 ' + e.exam_no + (can ? '' : '（' + whyNotSelectable(e) + '）'),
+          onchange: function (ev) { if (ev.target.checked) selected[e.exam_no] = true; else delete selected[e.exam_no]; renderBulk(); } })));
       tr.appendChild(h('td', { class: strike, text: e.exam_no }));
       tr.appendChild(h('td', { class: 'nowrap', text: e.exam_at }));
       tr.appendChild(h('td', { text: e.category }));
@@ -522,13 +611,20 @@
       var st = h('td', null, tagGroup(e));
       tr.appendChild(st);
       tr.appendChild(h('td', { class: 'nowrap', text: doctorOf(e) }));
-      tr.appendChild(h('td', null, h('button', { type: 'button', class: 'btn btn-sm ' + (actionable(e) ? 'btn-primary' : ''),
-        onclick: function (ev) { ev.stopPropagation(); open(); } }, actionable(e) ? '打報告' : '查看')));
+      if (isRad() && !e.image_taken && !dc) {
+        // 放射師：取回影像（示意。實際系統由 PACS 取回，不在課程範圍）
+        tr.appendChild(h('td', null, h('button', { type: 'button', class: 'btn btn-sm btn-secondary',
+          onclick: function (ev) { ev.stopPropagation(); e.image_taken = true; toast('已取回 ' + e.exam_no + ' 的影像，現在可以指派報告醫師'); update(); } }, '取回影像')));
+      } else {
+        tr.appendChild(h('td', null, h('button', { type: 'button', class: 'btn btn-sm ' + (actionable(e) ? 'btn-primary' : ''),
+          onclick: function (ev) { ev.stopPropagation(); open(); } }, actionable(e) ? '打報告' : (isRad() ? '檢視' : '查看'))));
+      }
       // 手機版卡片用的欄位名稱
-      [].forEach.call(tr.children, function (td, i) { td.setAttribute('data-label', COLS[i] ? COLS[i].t : '操作'); });
+      [].forEach.call(tr.children, function (td, i) { td.setAttribute('data-label', i === 0 ? '選取' : COLS[i - 1] ? COLS[i - 1].t : '操作'); });
       ui.tbody.appendChild(tr);
     });
     ui.empty.hidden = list.length > 0;
+    renderBulk();
   }
 
   /* ===== 打報告畫面 ===== */
@@ -592,12 +688,14 @@
     if (isDc(e)) app.appendChild(h('div', { class: 'banner banner-dc', role: 'note' }, h('span', { 'aria-hidden': 'true', text: '⊘' }),
       h('span', null, e.image_taken ? '此醫令已 DC（已取消），但影像已照。不計入未完成數量；請確認是否仍需撰寫報告。'
                                     : '此醫令已 DC（已取消），且尚未照影像，不需要撰寫報告。')));
-    var dl = deadlineOf(e);
-    if (dl && (dl.overdue || dl.soon)) app.appendChild(h('div', { class: 'banner banner-overdue', role: 'note' }, h('span', { 'aria-hidden': 'true', text: dl.overdue ? '⏰' : '⏳' }),
-      h('span', null, (dl.overdue ? '已逾時：' : '即將到期（剩 ' + fmtLeft(dl.left) + '）：') + '健檢報告須於檢查後 48 小時內完成，期限 ' + fmtTime(dl.due) + '。')));
     if (e.recalled && e.report_status === '未完成') app.appendChild(h('div', { class: 'banner banner-recall', role: 'note' }, h('span', { 'aria-hidden': 'true', text: '↺' }),
       h('span', null, '此報告已由' + e.recalled.by + '取消認證，原因：「' + e.recalled.reason + '」。請修改後重新儲存或認證。')));
-    if (!e.image_taken && !isDc(e)) app.appendChild(h('div', { class: 'banner banner-warn', role: 'note' }, h('span', { 'aria-hidden': 'true', text: '⧗' }),
+    var inBatch = !!(batch && batch.queue.indexOf(no) >= 0 && e.report_status === '未完成');
+    if (inBatch) app.appendChild(h('div', { class: 'banner banner-batch', role: 'note' }, h('span', { 'aria-hidden': 'true', text: '☰' }),
+      h('span', null, '批次確認 ' + (batch.certified + 1) + '／' + batch.total + '：已帶入正常範本。請看過影像，確認無誤再認證；有異常請直接修改內容，或移出批次。')));
+    if (isRad()) app.appendChild(h('div', { class: 'banner banner-info', role: 'note' }, h('span', { 'aria-hidden': 'true', text: 'i' }),
+      h('span', null, '放射師檢視模式：報告內容由報告醫師撰寫，放射師只能檢視。指派請回工作清單勾選後操作。')));
+    else if (!e.image_taken && !isDc(e)) app.appendChild(h('div', { class: 'banner banner-warn', role: 'note' }, h('span', { 'aria-hidden': 'true', text: '⧗' }),
       h('span', null, '等待影像：此檢查尚未照影像。影像取回後，放射師才會指派報告醫師，之後才能撰寫報告。')));
     else if (!e.report_doctor) app.appendChild(h('div', { class: 'banner banner-warn', role: 'note' }, h('span', { 'aria-hidden': 'true', text: '!' }),
       h('span', null, '尚未指派報告醫師，目前只能檢視。請洽放射師指派。')));
@@ -673,6 +771,14 @@
     function commit(status) {
       if (!validate()) return;
       collect(); e.report_status = status; if (status === '已認證') delete e.recalled;
+      if (inBatch) {
+        batch.certified += 1;
+        var rest = batch.queue.filter(function (x) { return x !== no && byNo(x).report_status === '未完成'; });
+        batch.queue = rest;
+        if (rest.length) { toast('已認證 ' + no + '，下一份：' + rest[0]); location.hash = '#/report/' + rest[0]; }
+        else { var n = batch.certified; batch = null; toast('批次確認完成：已認證 ' + n + ' 份'); location.hash = '#/'; }
+        return;
+      }
       var nxt = nextPendingAfter(no);
       if (nxt) { toast('已' + (status === '已認證' ? '認證' : '儲存') + ' ' + no + '，已跳到下一筆未完成：' + nxt.exam_no); location.hash = '#/report/' + nxt.exam_no; }
       else { toast('已' + (status === '已認證' ? '認證' : '儲存') + ' ' + no + '。所有未完成報告都已完成'); location.hash = '#/'; }
@@ -683,10 +789,18 @@
         h('button', { class: 'btn', type: 'button', disabled: !prev, onclick: function () { location.hash = '#/report/' + prev.exam_no; } }, '← 上一筆'),
         h('button', { class: 'btn', type: 'button', disabled: !next, onclick: function () { location.hash = '#/report/' + next.exam_no; } }, '下一筆 →')),
       h('span', { class: 'spacer' }),
-      h('span', { class: 'proto-note', style: 'margin:0', text: '儲存或認證後會自動跳到下一筆未完成報告' }),
-      h('div', { class: 'group' },
-        h('button', { class: 'btn btn-primary', type: 'button', disabled: !mineToEdit, onclick: function () { commit('已完成'); } }, '儲存'),
-        h('button', { class: 'btn btn-secondary', type: 'button', disabled: !mineToEdit, onclick: function () { commit('已認證'); } }, '認證'))));
+      h('span', { class: 'proto-note', style: 'margin:0', text: inBatch ? '批次確認：認證後自動跳到下一份' : '儲存或認證後會自動跳到下一筆未完成報告' }),
+      inBatch
+        ? h('div', { class: 'group' },
+            h('button', { class: 'btn', type: 'button', onclick: function () {
+              batch.queue = batch.queue.filter(function (x) { return x !== no; }); batch.total--;
+              if (!batch.queue.length) batch = null;
+              toast(no + ' 已移出批次，請一般撰寫'); renderReport(no);
+            } }, '移出批次'),
+            h('button', { class: 'btn btn-primary', type: 'button', onclick: function () { commit('已認證'); } }, '確認無誤・認證並下一份'))
+        : h('div', { class: 'group' },
+            h('button', { class: 'btn btn-primary', type: 'button', disabled: !mineToEdit, onclick: function () { commit('已完成'); } }, '儲存'),
+            h('button', { class: 'btn btn-secondary', type: 'button', disabled: !mineToEdit, onclick: function () { commit('已認證'); } }, '認證'))));
     window.scrollTo(0, 0);
     var firstTa = form.querySelector('textarea');
     if (mineToEdit && firstTa) firstTa.focus({ preventScroll: true });
@@ -700,7 +814,7 @@
   var who = document.getElementById('who');
   who.value = ME;
   who.addEventListener('change', function () {
-    ME = who.value; filters.doctor = ME; filters.q = '';
+    ME = who.value; filters = defaultFilters(); selected = {}; batch = null;
     toast('已切換為' + ME); if (location.hash === '#/' || !location.hash) renderList(); else route();
   });
   document.getElementById('now').textContent = '2026-11-04 09:00';

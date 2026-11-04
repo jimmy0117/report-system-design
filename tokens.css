@@ -48,10 +48,7 @@
   /* v2 新增：修飾標籤（與主要狀態並排，不取代主要狀態） */
   --status-recall: #6b3fa0;         /* 取消認證・待重打：紫 */
   --status-recall-bg: #f3edfa;
-  --deadline-overdue: #ffffff;      /* 已逾時：紅底白字（實心，最強烈） */
-  --deadline-overdue-bg: #b42318;
-  --deadline-soon: #b42318;         /* 即將到期：紅字、淡紅底 */
-  --deadline-soon-bg: #fdecea;
+  /* v4：移除 v2 的時限標籤（--deadline-*），它來自自編的設計變數，已由講師的設計變數取代 */
 
   /* 字級 */
   --font-family: "Noto Sans TC", "Microsoft JhengHei", "PingFang TC", sans-serif;
