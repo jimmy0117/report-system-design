@@ -10,7 +10,7 @@
 | `alternatives.html` | 第二週：工作清單三種替代方案（A 表格、B 類別卡片、C 待辦佇列）並排比較 |
 | `slides.html` | 第一週 Demo 簡報（用 Chrome 開啟；← → 切換、F 全螢幕） |
 | `tokens.css`、`design-system.md` | 迷你設計系統 |
-| `.claude/skills/report-design-system/`、`report-design-system.zip` | 設計系統 skill（資料夾給 Claude Code 用；壓縮檔上傳到 Claude 的 Customize → Skills） |
+| `.claude/skills/report-design-system/SKILL.md` | 設計系統 skill（單一 md 檔，已內含 tokens.css，可直接上傳到 Claude 的 Customize → Skills；Claude Code 也會自動讀取）。需要壓縮檔時用 `report-design-system.zip` |
 | `data/` | 模擬資料（`exams.json`、`phrases.json`） |
 | `images/` | 影像示意圖 |
 | `docs/ai-log.md` | AI 協作日誌 |

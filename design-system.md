@@ -1,6 +1,6 @@
 # 設計系統
 
-這份文件說明雛型使用的視覺規則，實際數值放在 `tokens.css`。同樣的規則也整理成 Claude skill：`.claude/skills/report-design-system/`（上傳用的壓縮檔是根目錄的 `report-design-system.zip`）。修改這份文件或 `tokens.css` 後，要同步更新 skill 裡的 `SKILL.md` 與 `tokens.css`。
+這份文件說明雛型使用的視覺規則，實際數值放在 `tokens.css`。同樣的規則也整理成 Claude skill：`.claude/skills/report-design-system/SKILL.md`（單一 md 檔，最後附上完整的 tokens.css，可直接上傳）。修改這份文件或 `tokens.css` 後，要同步更新 `SKILL.md`（含最後的 tokens.css 區塊）與 skill 資料夾中的 `tokens.css`，再重新打包 `report-design-system.zip`。
 
 ## 視覺風格（v3：霧面玻璃）
 
