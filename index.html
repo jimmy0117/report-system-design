@@ -36,6 +36,28 @@
     .tag-certified { color: var(--status-certified); background: var(--status-certified-bg); }
     .tag-dc { color: var(--status-dc); background: var(--status-dc-bg); }
     .tag-plain { color: var(--color-text-muted); background: var(--color-bg); font-weight: 400; }
+    .tag-waiting { color: var(--status-waiting); background: var(--status-waiting-bg); border-style: dashed; }
+    .tag-recall { color: var(--status-recall); background: var(--status-recall-bg); }
+    .tag-overdue { color: var(--deadline-overdue); background: var(--deadline-overdue-bg); border-color: var(--deadline-overdue-bg); }
+    .tag-soon { color: var(--deadline-soon); background: var(--deadline-soon-bg); }
+    .tags { display: inline-flex; flex-wrap: wrap; gap: var(--space-1); }
+    .src { font-size: var(--font-size-sm); color: var(--color-text-muted); }
+    .topbar select { min-height: 28px; border-radius: var(--radius); border: 1px solid var(--color-border); padding: 0 var(--space-2); background: var(--color-bg); color: var(--color-text); }
+    tr.st-waiting td { background: var(--color-bg); color: var(--color-text-muted); }
+    tr.st-waiting td:first-child { border-left: 4px dashed var(--status-waiting); }
+    .banner-overdue { color: var(--deadline-soon); background: var(--deadline-soon-bg); border-color: var(--deadline-soon); }
+    .banner-recall { color: var(--status-recall); background: var(--status-recall-bg); border-color: var(--status-recall); }
+    .cancel-box { margin-bottom: var(--space-3); border-color: var(--color-danger); }
+    .cancel-box textarea { min-height: 56px; }
+    /* 流程進度 */
+    .progress { list-style: none; margin: 0 0 var(--space-3); padding: var(--space-3) var(--space-4); display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-6); background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius); }
+    .pstep { display: flex; align-items: center; gap: var(--space-2); font-weight: 600; }
+    .pstep small { display: block; font-weight: 400; font-size: var(--font-size-sm); color: var(--color-text-muted); }
+    .pdot { width: 26px; height: 26px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: var(--font-size-sm); border: 2px solid var(--color-border); color: var(--color-text-muted); flex: none; }
+    .pstep.done .pdot { background: var(--status-certified); border-color: var(--status-certified); color: #fff; }
+    .pstep.current .pdot { border-color: var(--status-pending); color: var(--status-pending); }
+    .pstep.current small { color: var(--status-pending); font-weight: 600; }
+    .pstep.todo { color: var(--color-text-muted); }
 
     /* ── 工作清單：摘要 ── */
     .summary { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-4) var(--space-6); background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius); padding: var(--space-3) var(--space-4); margin-bottom: var(--space-3); }
@@ -126,12 +148,85 @@
     .toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: 84px; background: var(--color-text); color: #fff; padding: var(--space-2) var(--space-4); border-radius: var(--radius); font-size: var(--font-size-sm); opacity: 0; pointer-events: none; transition: opacity .2s; z-index: 10; max-width: 90vw; }
     .toast.show { opacity: 1; }
     .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+    /* ===== v3：霧面玻璃風格（數值皆來自 tokens.css） ===== */
+    body { background: var(--page-gradient), var(--color-surface); background-attachment: fixed; min-height: 100vh; }
+    .topbar { background: var(--glass-bg-strong); color: var(--color-text); border-bottom: 1px solid var(--glass-border); box-shadow: var(--shadow-soft);
+      -webkit-backdrop-filter: blur(var(--glass-blur)); backdrop-filter: blur(var(--glass-blur)); position: sticky; top: 0; z-index: 6; flex-wrap: wrap; }
+    .topbar h1 { font-weight: 700; letter-spacing: .04em; display: flex; align-items: center; gap: var(--space-2); }
+    .topbar h1::before { content: ""; width: 22px; height: 22px; border-radius: 6px; background: var(--gradient-primary); box-shadow: var(--shadow-button); }
+    .summary, .filters, .table-wrap, .case-info, .panel, .progress {
+      background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: var(--radius-lg); box-shadow: var(--shadow-soft);
+      -webkit-backdrop-filter: blur(var(--glass-blur)); backdrop-filter: blur(var(--glass-blur)); }
+    .table-wrap, form.panel { background: var(--glass-bg-strong); }
+    th { background: rgba(238, 243, 251, .85); font-size: var(--font-size-xs); letter-spacing: var(--letter-spacing-label); }
+    .panel h3 { font-size: var(--font-size-xs); letter-spacing: var(--letter-spacing-label); color: var(--color-text-muted); font-weight: 700; }
+    .panel h3::before { content: "✦ "; color: var(--color-primary); }
+    .case-info dt, .field label { letter-spacing: .06em; }
+    .btn { border-radius: var(--radius); background: var(--glass-bg-strong); }
+    .btn-primary { background: var(--gradient-primary); border-color: transparent; box-shadow: var(--shadow-button); }
+    .btn-primary:hover:not(:disabled) { background: var(--gradient-primary); filter: brightness(.94); border-color: transparent; }
+    .btn-primary:disabled { box-shadow: none; }
+    .chip { border-radius: 999px; background: var(--glass-bg-strong); }
+    .chip[aria-pressed="true"] { background: var(--gradient-primary); border-color: transparent; }
+    .field select, .field input[type="search"], .form-field textarea { border-radius: var(--radius); }
+    .image-area { border-radius: var(--radius-lg); }
+    .banner { border-radius: var(--radius); }
+    .actionbar { background: var(--glass-bg-strong); border-top: 1px solid var(--glass-border); box-shadow: 0 -8px 28px rgba(63, 95, 224, .08);
+      -webkit-backdrop-filter: blur(var(--glass-blur)); backdrop-filter: blur(var(--glass-blur)); }
+    .toast { border-radius: 999px; }
+    tbody tr:hover td { background: #e3e9fb; }
+
+    /* ===== 手機版（700px 以下）：清單改成卡片、操作列加大 ===== */
+    @media (max-width: 700px) {
+      .topbar { padding: var(--space-2) var(--space-4); gap: var(--space-1); }
+      .topbar h1 { font-size: var(--font-size-md); }
+      .topbar .who { font-size: var(--font-size-xs); }
+      main { padding: var(--space-3) var(--space-3) 150px; }
+      .summary { gap: var(--space-3); }
+      .summary .side { margin-left: 0; }
+      .summary .big { flex-wrap: wrap; }
+      .summary .big .label { white-space: nowrap; }
+      .summary > .btn-primary { width: 100%; }
+      .filters .field { flex: 1 1 calc(50% - var(--space-3)); }
+      .field select, .field input[type="search"] { min-width: 0; width: 100%; }
+      .table-wrap { background: transparent; border: 0; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; overflow: visible; }
+      table, tbody { display: block; }
+      thead { display: none; }
+      tbody tr { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2) var(--space-3); padding: var(--space-3);
+        margin-bottom: var(--space-3); border-radius: var(--radius-lg); border: 1px solid var(--glass-border); border-left-width: 4px;
+        background: var(--glass-bg-strong); box-shadow: var(--shadow-soft); }
+      tbody tr td, tbody tr:hover td { background: transparent; border: 0 !important; padding: 0; white-space: normal; }
+      tbody td::before { content: attr(data-label); display: block; font-size: var(--font-size-xs); color: var(--color-text-muted); letter-spacing: .06em; }
+      tbody td[data-label="報告狀態"], tbody td[data-label="操作"] { grid-column: 1 / -1; }
+      tbody td[data-label="操作"]::before { display: none; }
+      tbody td[data-label="操作"] .btn { width: 100%; min-height: var(--control-height); }
+      tr.st-pending { background: var(--status-pending-bg); border-left-color: var(--status-pending); }
+      tr.st-done { background: var(--status-done-bg); border-left-color: var(--status-done); }
+      tr.st-certified { background: var(--status-certified-bg); border-left-color: var(--status-certified); }
+      tr.st-dc { background: var(--status-dc-bg); border-left-color: var(--status-dc); }
+      tr.st-waiting { background: var(--color-bg); border-left-style: dashed; border-left-color: var(--status-waiting); }
+      .case-info { grid-template-columns: 1fr 1fr; }
+      .image-area { min-height: 220px; }
+      .image-area img { max-height: 44vh; }
+      .actionbar { padding: var(--space-2) var(--space-3); gap: var(--space-2); }
+      .actionbar .spacer, .actionbar .proto-note { display: none; }
+      .actionbar .group { flex: 1 1 100%; }
+      .actionbar .group .btn { flex: 1; }
+      .toast { bottom: 128px; }
+      .report-head h2 { font-size: var(--font-size-lg); }
+      .report-head .remain { margin-left: 0; width: 100%; }
+    }
   </style>
 </head>
 <body>
   <header class="topbar">
     <h1>影像報告撰寫系統</h1>
-    <span class="who">登入：<strong id="who"></strong>（報告醫師）</span>
+    <span class="who">
+      <label for="who">登入身分（雛型切換用）：</label>
+      <select id="who"><option>醫師甲</option><option>醫師丙</option></select>
+      ・資料時間 <strong id="now"></strong>
+    </span>
   </header>
   <main id="app"></main>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -163,7 +258,15 @@
     '已完成': { cls: 'done', icon: '◐' },
     '已認證': { cls: 'certified', icon: '✔' }
   };
-  var STATUS_ORDER = { '未完成': 0, '已完成': 1, '已認證': 2 };
+  // v2：流程上「還不能打」的兩種狀態，與報告狀態放在同一個標籤位置（進階軌：報告狀態呈現）
+  var STAGE = {
+    '等待影像': { cls: 'waiting', icon: '⧗' },
+    '待指派':   { cls: 'waiting', icon: '⇢' }
+  };
+  var STATUS_ORDER = { '等待影像': 0, '待指派': 1, '未完成': 2, '已完成': 3, '已認證': 4 };
+  // 雛型的「現在時間」固定，讓時限標示每次都一樣（設計變數：健檢報告 48 小時內完成，見 README）
+  var NOW = new Date('2026-11-04T09:00:00');
+  var DEADLINE_HOURS = 48, SOON_HOURS = 12;
   var COLS = [
     { k: 'exam_no', t: '單號' }, { k: 'exam_at', t: '檢查日期時間' }, { k: 'category', t: '檢查類別' },
     { k: 'exam_name', t: '檢查名稱' }, { k: 'order_dept', t: '開單單位' }, { k: 'order_doctor', t: '開單醫師' },
@@ -208,22 +311,56 @@
   function dateOf(e) { return e.exam_at.slice(0, 10); }
   // 訪談二：已DC且未照 → 從清單移除；已DC已照 → 保留並標示
   function hiddenByDc(e) { return isDc(e) && !e.image_taken && !filters.showDcUnshot; }
-  function actionable(e) { return e.report_status === '未完成' && !isDc(e) && e.report_doctor === ME; }
+  function actionable(e) { return stageOf(e) === '未完成' && !isDc(e) && e.report_doctor === ME; }
+  // 流程階段：未照 → 等待影像；已照未指派 → 待指派；之後才是報告狀態
+  function stageOf(e) {
+    if (e.report_status === '未完成' && !e.image_taken) return '等待影像';
+    if (e.report_status === '未完成' && !e.report_doctor) return '待指派';
+    return e.report_status;
+  }
+  // 設計變數（自編）：健檢報告須於檢查後 48 小時內完成認證
+  function deadlineOf(e) {
+    if (e.category.indexOf('健檢') !== 0 || e.report_status === '已認證' || isDc(e)) return null;
+    var due = new Date(e.exam_at.replace(' ', 'T') + ':00'); due.setHours(due.getHours() + DEADLINE_HOURS);
+    var left = (due - NOW) / 36e5;
+    return { due: due, left: left, overdue: left < 0, soon: left >= 0 && left <= SOON_HOURS };
+  }
+  function fmtTime(d) { function p(n) { return (n < 10 ? '0' : '') + n; } return (d.getMonth() + 1) + '/' + d.getDate() + ' ' + p(d.getHours()) + ':' + p(d.getMinutes()); }
+  function fmtLeft(hrs) { return hrs >= 1 ? Math.floor(hrs) + ' 小時' : Math.max(1, Math.round(hrs * 60)) + ' 分鐘'; }
   function toast(msg) {
     var t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show');
     clearTimeout(toast.t); toast.t = setTimeout(function () { t.classList.remove('show'); }, 3200);
   }
-  function statusTag(e) {
-    var s = STATUS[e.report_status];
-    return h('span', { class: 'tag tag-' + s.cls }, h('span', { 'aria-hidden': 'true', text: s.icon }), e.report_status);
+  function tag(cls, icon, text, title) {
+    return h('span', { class: 'tag tag-' + cls, title: title || null }, h('span', { 'aria-hidden': 'true', text: icon }), text);
   }
-  function dcTag() { return h('span', { class: 'tag tag-dc' }, h('span', { 'aria-hidden': 'true', text: '⊘' }), '醫令已DC'); }
+  function statusTag(e) {
+    var st = stageOf(e), s = STATUS[st] || STAGE[st];
+    return tag(s.cls, s.icon, st);
+  }
+  function dcTag() { return tag('dc', '⊘', '醫令已DC'); }
+  function recallTag() { return tag('recall', '↺', '取消認證・待重打'); }
+  function deadlineTag(dl) {
+    if (!dl) return null;
+    if (dl.overdue) return tag('overdue', '⏰', '已逾時', '期限 ' + fmtTime(dl.due));
+    if (dl.soon) return tag('soon', '⏳', '剩 ' + fmtLeft(dl.left), '期限 ' + fmtTime(dl.due));
+    return null;
+  }
+  // 狀態標籤組：主要狀態 + 修飾標籤（DC、取消認證、時限）
+  function tagGroup(e) {
+    var g = h('span', { class: 'tags' }, statusTag(e));
+    if (isDc(e)) g.appendChild(dcTag());
+    if (e.recalled && e.report_status === '未完成') g.appendChild(recallTag());
+    var dt = deadlineTag(deadlineOf(e)); if (dt) g.appendChild(dt);
+    return g;
+  }
 
   /* ===== 清單資料處理 ===== */
   function inScope(e) { return filters.doctor === '' || doctorOf(e) === filters.doctor; }
   function matches(e) {
-    if (hiddenByDc(e) || !inScope(e)) return false;
-    if (filters.status && e.report_status !== filters.status) return false;
+    // v2：用單號／身分證搜尋時查全部醫師（走查任務 4：R0009 在「我的報告」範圍內找不到）
+    if (hiddenByDc(e) || (!filters.q && !inScope(e))) return false;
+    if (filters.status && stageOf(e) !== filters.status) return false;
     if (filters.category && e.category !== filters.category) return false;
     if (filters.dept && e.order_dept !== filters.dept) return false;
     if (filters.orderDoc && e.order_doctor !== filters.orderDoc) return false;
@@ -235,7 +372,7 @@
     return true;
   }
   function sortVal(e, k) {
-    if (k === 'report_status') return STATUS_ORDER[e.report_status];
+    if (k === 'report_status') return STATUS_ORDER[stageOf(e)];
     if (k === 'report_doctor') return doctorOf(e);
     if (k === 'image_taken') return e.image_taken ? 1 : 0;
     return e[k];
@@ -273,7 +410,7 @@
     app.appendChild(h('section', { class: 'filters', 'aria-label': '搜尋條件' },
       sel('f-doctor', '報告醫師', 'doctor', plain(docOpts), '全部醫師'),
       sel('f-date', '檢查日期', 'date', plain(uniq('exam_at').map(function (s) { return s.slice(0, 10); }).filter(function (v, i, a) { return a.indexOf(v) === i; })), '全部日期'),
-      sel('f-status', '報告狀態', 'status', plain(['未完成', '已完成', '已認證'])),
+      sel('f-status', '報告狀態', 'status', plain(['等待影像', '待指派', '未完成', '已完成', '已認證'])),
       sel('f-cat', '檢查類別', 'category', plain(uniq('category'))),
       sel('f-dept', '開單單位', 'dept', plain(uniq('order_dept'))),
       sel('f-od', '開單醫師', 'orderDoc', plain(uniq('order_doctor'))),
@@ -321,11 +458,14 @@
     var unassigned = EXAMS.filter(function (e) { return !e.report_doctor && !hiddenByDc(e); }).length;
     var dcKept = mine.filter(isDc).length;
     var s = ui.summary; s.textContent = '';
+    var overdue = pending.filter(function (e) { var d = deadlineOf(e); return d && d.overdue; }).length;
+    var soon = pending.filter(function (e) { var d = deadlineOf(e); return d && d.soon; }).length;
+    var first = pending.slice().sort(function (a, b) { return a.exam_at.localeCompare(b.exam_at); })[0];
 
     s.appendChild(h('div', { class: 'big' },
       h('span', { class: 'label', text: '我的未完成報告' }),
       h('span', { class: 'num', text: String(pending.length) }),
-      h('span', { class: 'total', text: '份／共 ' + (mine.length - dcKept) + ' 份' })));
+      h('span', { class: 'total', text: '份／共 ' + (mine.length - dcKept) + ' 份' + (dcKept ? '（不含已DC ' + dcKept + ' 份）' : '') })));
     var chips = h('div', { class: 'chips', role: 'group', 'aria-label': '依檢查類別看未完成數量' });
     cats.forEach(function (c) {
       var n = byCat[c] || 0;
@@ -335,6 +475,14 @@
         c, h('b', { text: String(n) })));
     });
     s.appendChild(chips);
+    if (overdue || soon) s.appendChild(h('div', { class: 'chips' },
+      overdue ? tag('overdue', '⏰', '已逾時 ' + overdue + ' 份') : null,
+      soon ? tag('soon', '⏳', '12 小時內到期 ' + soon + ' 份') : null,
+      h('span', { class: 'src', text: '健檢報告須於檢查後 48 小時內完成' })));
+    // 替代方案 C 的優點：一鍵開始下一份（依檢查時間，最早的先打）
+    s.appendChild(h('button', { type: 'button', class: 'btn btn-primary', disabled: !first,
+      onclick: function () { location.hash = '#/report/' + first.exam_no; } },
+      first ? '開始打下一份：' + first.exam_no + ' ' + first.category + ' →' : '沒有待打的報告'));
     var side = h('div', { class: 'side' });
     if (dcKept) side.appendChild(h('span', null, '另有 ' + dcKept + ' 筆已DC（已照，仍保留於清單、不計入未完成）'));
     side.appendChild(h('span', null, '尚未指派報告醫師：' + unassigned + ' 筆 ',
@@ -350,16 +498,16 @@
       c.th.setAttribute('aria-sort', on ? (sort.dir === 1 ? 'ascending' : 'descending') : 'none');
     });
     var list = visibleList();
-    ui.count.textContent = '符合條件 ' + list.length + ' 筆（預設依檢查日期與時間由早到晚；點欄位標題可排序）';
+    ui.count.textContent = '符合條件 ' + list.length + ' 筆' + (filters.q ? '（搜尋單號／身分證時查詢全部醫師的檢查）' : '（預設依檢查日期與時間由早到晚；點欄位標題可排序）');
     ui.tbody.textContent = '';
     list.forEach(function (e) {
       var dc = isDc(e);
-      var cls = dc ? 'st-dc' : 'st-' + STATUS[e.report_status].cls;
+      var stg = stageOf(e), cls = dc ? 'st-dc' : 'st-' + (STATUS[stg] || STAGE[stg]).cls;
       var strike = dc ? 'strike nowrap' : 'nowrap';
       var open = function () { location.hash = '#/report/' + e.exam_no; };
       var tr = h('tr', { class: cls, tabindex: '0', onclick: open,
         onkeydown: function (ev) { if (ev.key === 'Enter') open(); },
-        'aria-label': e.exam_no + ' ' + e.exam_name + ' ' + e.report_status + (dc ? ' 醫令已DC' : '') });
+        'aria-label': e.exam_no + ' ' + e.exam_name + ' ' + tagGroup(e).textContent });
       tr.appendChild(h('td', { class: strike, text: e.exam_no }));
       tr.appendChild(h('td', { class: 'nowrap', text: e.exam_at }));
       tr.appendChild(h('td', { text: e.category }));
@@ -371,11 +519,13 @@
       tr.appendChild(h('td', { class: 'nowrap' }, e.image_taken
         ? h('span', { class: 'tag tag-plain' }, h('span', { 'aria-hidden': 'true', text: '✓' }), '已照')
         : h('span', { class: 'tag tag-plain' }, h('span', { 'aria-hidden': 'true', text: '—' }), '未照')));
-      var st = h('td', { class: 'nowrap' }, statusTag(e)); if (dc) { st.appendChild(document.createTextNode(' ')); st.appendChild(dcTag()); }
+      var st = h('td', null, tagGroup(e));
       tr.appendChild(st);
       tr.appendChild(h('td', { class: 'nowrap', text: doctorOf(e) }));
       tr.appendChild(h('td', null, h('button', { type: 'button', class: 'btn btn-sm ' + (actionable(e) ? 'btn-primary' : ''),
         onclick: function (ev) { ev.stopPropagation(); open(); } }, actionable(e) ? '打報告' : '查看')));
+      // 手機版卡片用的欄位名稱
+      [].forEach.call(tr.children, function (td, i) { td.setAttribute('data-label', COLS[i] ? COLS[i].t : '操作'); });
       ui.tbody.appendChild(tr);
     });
     ui.empty.hidden = list.length > 0;
@@ -404,14 +554,14 @@
     var app = document.getElementById('app'); app.textContent = '';
     if (!e) { location.hash = '#/'; return; }
     var rep = reports[no], tpl = TEMPLATES[e.category] || [], ph = PHRASES[e.category] || {};
-    var mineToEdit = e.report_doctor === ME && e.report_status !== '已認證';
+    var mineToEdit = e.report_doctor === ME && e.image_taken && e.report_status !== '已認證';
     var fieldEls = {};
 
     var pendingNow = EXAMS.filter(function (x) { return x.report_doctor === ME && actionable(x); }).length;
     app.appendChild(h('div', { class: 'report-head' },
       h('button', { class: 'btn', type: 'button', onclick: function () { location.hash = '#/'; } }, '← 回工作清單'),
       h('h2', { text: e.exam_name }),
-      statusTag(e), isDc(e) ? dcTag() : null,
+      tagGroup(e),
       h('span', { class: 'remain', text: '我還有 ' + pendingNow + ' 份未完成報告' })));
 
     // 個案必要資訊（訪談一）
@@ -421,15 +571,55 @@
       di('檢查名稱', e.exam_name), di('檢查日期時間', e.exam_at), di('開單醫師', e.order_doctor),
       di('開單單位', e.order_dept), di('單號', e.exam_no), di('報告醫師', doctorOf(e))));
 
+    // v2：流程進度（影像 → 指派 → 撰寫 → 認證），回答「這份報告什麼時候會出來」（走查任務 4）
+    var steps = [
+      { t: '影像取回', done: e.image_taken, who: '放射師' },
+      { t: '指派報告醫師', done: !!e.report_doctor, who: '放射師' },
+      { t: '撰寫報告', done: e.report_status !== '未完成', who: doctorOf(e) },
+      { t: '認證', done: e.report_status === '已認證', who: doctorOf(e) }
+    ];
+    var curIdx = steps.findIndex(function (x) { return !x.done; });
+    var prog = h('ol', { class: 'progress', 'aria-label': '報告流程進度' });
+    steps.forEach(function (x, i) {
+      var state = x.done ? 'done' : (i === curIdx ? 'current' : 'todo');
+      prog.appendChild(h('li', { class: 'pstep ' + state, 'aria-current': i === curIdx ? 'step' : null },
+        h('span', { class: 'pdot', 'aria-hidden': 'true', text: x.done ? '✓' : String(i + 1) }),
+        h('span', null, x.t, h('small', { text: x.done ? '完成' : (i === curIdx ? '目前：等待' + x.who : '尚未開始') }))));
+    });
+    app.appendChild(prog);
+
     // 提示橫幅
     if (isDc(e)) app.appendChild(h('div', { class: 'banner banner-dc', role: 'note' }, h('span', { 'aria-hidden': 'true', text: '⊘' }),
-      h('span', null, '此醫令已 DC（已取消），但影像已照。請確認是否仍需撰寫報告。')));
-    if (!e.report_doctor) app.appendChild(h('div', { class: 'banner banner-warn', role: 'note' }, h('span', { 'aria-hidden': 'true', text: '!' }),
+      h('span', null, e.image_taken ? '此醫令已 DC（已取消），但影像已照。不計入未完成數量；請確認是否仍需撰寫報告。'
+                                    : '此醫令已 DC（已取消），且尚未照影像，不需要撰寫報告。')));
+    var dl = deadlineOf(e);
+    if (dl && (dl.overdue || dl.soon)) app.appendChild(h('div', { class: 'banner banner-overdue', role: 'note' }, h('span', { 'aria-hidden': 'true', text: dl.overdue ? '⏰' : '⏳' }),
+      h('span', null, (dl.overdue ? '已逾時：' : '即將到期（剩 ' + fmtLeft(dl.left) + '）：') + '健檢報告須於檢查後 48 小時內完成，期限 ' + fmtTime(dl.due) + '。')));
+    if (e.recalled && e.report_status === '未完成') app.appendChild(h('div', { class: 'banner banner-recall', role: 'note' }, h('span', { 'aria-hidden': 'true', text: '↺' }),
+      h('span', null, '此報告已由' + e.recalled.by + '取消認證，原因：「' + e.recalled.reason + '」。請修改後重新儲存或認證。')));
+    if (!e.image_taken && !isDc(e)) app.appendChild(h('div', { class: 'banner banner-warn', role: 'note' }, h('span', { 'aria-hidden': 'true', text: '⧗' }),
+      h('span', null, '等待影像：此檢查尚未照影像。影像取回後，放射師才會指派報告醫師，之後才能撰寫報告。')));
+    else if (!e.report_doctor) app.appendChild(h('div', { class: 'banner banner-warn', role: 'note' }, h('span', { 'aria-hidden': 'true', text: '!' }),
       h('span', null, '尚未指派報告醫師，目前只能檢視。請洽放射師指派。')));
     else if (e.report_doctor !== ME) app.appendChild(h('div', { class: 'banner banner-info', role: 'note' }, h('span', { 'aria-hidden': 'true', text: 'i' }),
       h('span', null, '這份報告由' + e.report_doctor + '負責，目前只能檢視。')));
     else if (e.report_status === '已認證') app.appendChild(h('div', { class: 'banner banner-info', role: 'note' }, h('span', { 'aria-hidden': 'true', text: 'i' }),
-      h('span', null, '此報告已認證，內容不能修改。若需重打，請由放射師或技術員取消認證。')));
+      h('span', null, '此報告已認證，內容不能修改。發現錯誤需要修改時，請先取消認證：', h('button', { type: 'button', class: 'btn btn-sm btn-danger', style: 'margin-left:8px',
+        onclick: function () { cancelBox.hidden = false; cancelBox.querySelector('textarea').focus(); } }, '取消認證…'))));
+    // v2：取消認證（走查任務 5；訪談三）。不用瀏覽器對話框，改用畫面上的確認區，並要求填寫原因
+    var cancelErr = h('div', { class: 'err', id: 'cancel-err', text: '請填寫取消認證的原因。' });
+    var cancelReason = h('textarea', { id: 'cancel-reason', rows: '2', 'aria-describedby': 'cancel-err', placeholder: '例如：Lung 欄位寫錯側別' });
+    var cancelBox = h('section', { class: 'panel cancel-box', hidden: true, 'aria-label': '取消認證' },
+      h('div', { class: 'form-field' }, h('label', { for: 'cancel-reason' }, '取消認證的原因', h('span', { class: 'req', text: '必填，會顯示給報告醫師與技術員' })), cancelReason, cancelErr),
+      h('div', { class: 'group', style: 'display:flex;gap:8px' },
+        h('button', { type: 'button', class: 'btn btn-danger', onclick: function () {
+          var r = cancelReason.value.trim();
+          if (!r) { cancelReason.parentNode.classList.add('has-error'); cancelReason.focus(); return; }
+          e.report_status = '未完成'; e.recalled = { reason: r, by: ME };
+          toast('已取消認證 ' + no + '，報告回到未完成，可以修改'); renderReport(no);
+        } }, '確認取消認證'),
+        h('button', { type: 'button', class: 'btn', onclick: function () { cancelBox.hidden = true; } }, '不取消')));
+    if (e.report_doctor === ME && e.report_status === '已認證') app.appendChild(cancelBox);
 
     // 左：影像；右：範本欄位
     var imgPanel = h('section', { class: 'panel', 'aria-label': '影像' }, h('h3', { text: '影像' }));
@@ -482,7 +672,7 @@
     }
     function commit(status) {
       if (!validate()) return;
-      collect(); e.report_status = status;
+      collect(); e.report_status = status; if (status === '已認證') delete e.recalled;
       var nxt = nextPendingAfter(no);
       if (nxt) { toast('已' + (status === '已認證' ? '認證' : '儲存') + ' ' + no + '，已跳到下一筆未完成：' + nxt.exam_no); location.hash = '#/report/' + nxt.exam_no; }
       else { toast('已' + (status === '已認證' ? '認證' : '儲存') + ' ' + no + '。所有未完成報告都已完成'); location.hash = '#/'; }
@@ -507,7 +697,13 @@
     var m = location.hash.match(/^#\/report\/(R\d+)/);
     if (m) renderReport(m[1]); else renderList();
   }
-  document.getElementById('who').textContent = ME;
+  var who = document.getElementById('who');
+  who.value = ME;
+  who.addEventListener('change', function () {
+    ME = who.value; filters.doctor = ME; filters.q = '';
+    toast('已切換為' + ME); if (location.hash === '#/' || !location.hash) renderList(); else route();
+  });
+  document.getElementById('now').textContent = '2026-11-04 09:00';
   window.addEventListener('hashchange', route);
   route();
 })();

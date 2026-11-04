@@ -1,0 +1,83 @@
+/* 影像報告撰寫系統 — 迷你設計系統
+   每個變數的用途與使用規則見 design-system.md。
+   修改或新增變數時，先更新 design-system.md 的「變更紀錄」，再改畫面。
+   v3（2026-11-04）：視覺風格改為「霧面玻璃」（參考使用者提供的 Pinterest 範例），
+   報告狀態色維持原本的數值，確保在淡色底上的對比度。 */
+
+:root {
+  /* 色彩：基本 */
+  --color-primary: #3f5fe0;          /* 冰藍紫，白底對比 5.3:1 */
+  --color-primary-hover: #3350c8;
+  --color-primary-2: #6366e8;        /* 漸層終點，白字對比 4.6:1 */
+  --gradient-primary: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-2) 100%);
+  --color-on-primary: #ffffff;
+  --color-bg: #ffffff;               /* 輸入框、實心底 */
+  --color-surface: #eef3fb;          /* 頁面底色（漸層的基底）、表頭 */
+  --color-text: #1e2a44;
+  --color-text-muted: #56627c;
+  --color-border: #d3ddef;
+  --color-focus: #2b50d6;
+  --color-danger: #b42318;
+  --color-danger-bg: #fdecea;
+
+  /* 霧面玻璃 */
+  --page-gradient: radial-gradient(1200px 600px at 85% -10%, #dfe6fb 0%, transparent 60%),
+                   radial-gradient(900px 500px at -10% 30%, #e6eefb 0%, transparent 60%),
+                   linear-gradient(180deg, #f3f6fc 0%, #e8eef9 100%);
+  --glass-bg: rgba(255, 255, 255, 0.62);
+  --glass-bg-strong: rgba(255, 255, 255, 0.82);  /* 文字較多的區塊（表格、表單） */
+  --glass-border: rgba(255, 255, 255, 0.9);
+  --glass-blur: 14px;
+  --shadow-soft: 0 8px 28px rgba(63, 95, 224, 0.10), 0 1px 2px rgba(30, 42, 68, 0.06);
+  --shadow-button: 0 6px 16px rgba(63, 95, 224, 0.28);
+
+  /* 色彩：報告狀態（每種狀態：文字/邊框色 + 淡底色；一律搭配圖示與文字，不單靠顏色）
+     選用方案 A「橘／藍／綠／灰」，與其他方案的比較見 design-system.md */
+  --status-pending: #a64b00;        /* 未完成：橘棕 */
+  --status-pending-bg: #fff4e5;
+  --status-done: #1f5fa8;           /* 已完成：藍 */
+  --status-done-bg: #e8f1fb;
+  --status-certified: #17653f;      /* 已認證：綠 */
+  --status-certified-bg: #e6f4ec;
+  --status-dc: #5f6b7a;             /* 醫令已 DC：灰（另加刪除線） */
+  --status-dc-bg: #eceff3;
+
+  /* v2 新增：流程上「還不能打」的狀態（虛線外框區分） */
+  --status-waiting: #5f6b7a;        /* 等待影像、待指派：灰、虛線框、白底 */
+  --status-waiting-bg: #ffffff;
+  /* v2 新增：修飾標籤（與主要狀態並排，不取代主要狀態） */
+  --status-recall: #6b3fa0;         /* 取消認證・待重打：紫 */
+  --status-recall-bg: #f3edfa;
+  --deadline-overdue: #ffffff;      /* 已逾時：紅底白字（實心，最強烈） */
+  --deadline-overdue-bg: #b42318;
+  --deadline-soon: #b42318;         /* 即將到期：紅字、淡紅底 */
+  --deadline-soon-bg: #fdecea;
+
+  /* 字級 */
+  --font-family: "Noto Sans TC", "Microsoft JhengHei", "PingFang TC", sans-serif;
+  --font-size-xs: 12px;        /* v3：區塊標籤（大寫、加寬字距） */
+  --font-size-sm: 13px;
+  --font-size-md: 15px;
+  --font-size-lg: 18px;
+  --font-size-xl: 22px;
+  --font-size-display: 36px;   /* 未完成數量專用 */
+  --letter-spacing-label: 0.12em;
+
+  /* 間距 */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+
+  /* 圓角 */
+  --radius: 10px;              /* 按鈕、輸入框 */
+  --radius-lg: 18px;           /* 卡片、面板 */
+
+  /* 控制項最小高度（點擊範圍；手機上加大） */
+  --control-height: 36px;
+}
+
+@media (max-width: 700px) {
+  :root { --control-height: 44px; }
+}

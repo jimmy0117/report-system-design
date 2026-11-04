@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>工作清單替代方案｜A 表格・B 類別卡片・C 待辦佇列</title>
+<link rel="stylesheet" href="tokens.css">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: var(--font-family); font-size: var(--font-size-md); color: var(--color-text); background: var(--color-surface); line-height: 1.5; }
+  :focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; }
+  header { background: var(--color-primary); color: var(--color-on-primary); padding: var(--space-3) var(--space-6); }
+  header h1 { margin: 0; font-size: var(--font-size-lg); }
+  header p { margin: 0; font-size: var(--font-size-sm); opacity: .9; }
+  main { max-width: 1400px; margin: 0 auto; padding: var(--space-4) var(--space-6) var(--space-6); }
+  .tabs { display: flex; gap: var(--space-2); margin-bottom: var(--space-4); flex-wrap: wrap; }
+  .tabs button { min-height: var(--control-height); padding: 0 var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius); background: var(--color-bg); cursor: pointer; font: inherit; font-weight: 600; }
+  .tabs button[aria-selected="true"] { background: var(--color-primary); color: var(--color-on-primary); border-color: var(--color-primary); }
+  .layout { display: grid; grid-template-columns: 1fr 320px; gap: var(--space-4); align-items: start; }
+  @media (max-width: 1000px) { .layout { grid-template-columns: 1fr; } }
+  .panel { background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius); padding: var(--space-4); }
+  .note h2 { font-size: var(--font-size-lg); margin: 0 0 var(--space-2); }
+  .note h3 { font-size: var(--font-size-md); margin: var(--space-3) 0 var(--space-1); }
+  .note p, .note li { font-size: var(--font-size-sm); margin: 0; }
+  .note ul { padding-left: 1.2em; margin: 0; }
+  .steps { font-size: var(--font-size-xl); font-weight: 700; color: var(--color-primary); }
+
+  .tag { display: inline-flex; align-items: center; gap: var(--space-1); padding: 1px var(--space-2); border-radius: 999px; border: 1px solid currentColor; font-size: var(--font-size-sm); font-weight: 600; white-space: nowrap; }
+  .tag-pending { color: var(--status-pending); background: var(--status-pending-bg); }
+  .tag-done { color: var(--status-done); background: var(--status-done-bg); }
+  .tag-certified { color: var(--status-certified); background: var(--status-certified-bg); }
+  .tag-dc { color: var(--status-dc); background: var(--status-dc-bg); }
+  .tag-waiting { color: var(--status-waiting); background: var(--status-waiting-bg); border-style: dashed; }
+  .btn { min-height: var(--control-height); padding: 0 var(--space-4); border-radius: var(--radius); border: 1px solid var(--color-border); background: var(--color-bg); cursor: pointer; font: inherit; text-decoration: none; color: var(--color-text); display: inline-flex; align-items: center; }
+  .btn-primary { background: var(--color-primary); border-color: var(--color-primary); color: var(--color-on-primary); font-weight: 600; }
+  .btn-sm { min-height: 28px; padding: 0 var(--space-3); font-size: var(--font-size-sm); }
+  .big { font-size: var(--font-size-display); font-weight: 700; color: var(--status-pending); line-height: 1; }
+  .muted { color: var(--color-text-muted); font-size: var(--font-size-sm); }
+
+  /* A 表格 */
+  table { border-collapse: collapse; width: 100%; font-size: var(--font-size-sm); }
+  th, td { text-align: left; padding: var(--space-2) var(--space-3); border-bottom: 1px solid var(--color-border); white-space: nowrap; }
+  th { background: var(--color-surface); }
+  tr.p td { background: var(--status-pending-bg); } tr.d td { background: var(--status-done-bg); } tr.x td { background: var(--status-dc-bg); color: var(--color-text-muted); }
+  .sumline { display: flex; gap: var(--space-4); align-items: baseline; margin-bottom: var(--space-3); flex-wrap: wrap; }
+
+  /* B 卡片 */
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: var(--space-3); }
+  .cat { border: 1px solid var(--color-border); border-radius: var(--radius); padding: var(--space-3); background: var(--color-bg); border-top: 4px solid var(--status-pending); }
+  .cat.zero { border-top-color: var(--color-border); }
+  .cat h3 { margin: 0; font-size: var(--font-size-md); display: flex; justify-content: space-between; align-items: baseline; }
+  .cat h3 .n { font-size: var(--font-size-xl); color: var(--status-pending); }
+  .mini { display: flex; justify-content: space-between; align-items: center; gap: var(--space-2); padding: var(--space-2); border: 1px solid var(--color-border); border-radius: var(--radius); margin-top: var(--space-2); font-size: var(--font-size-sm); }
+
+  /* C 佇列 */
+  .hero { border: 2px solid var(--status-pending); background: var(--status-pending-bg); border-radius: 10px; padding: var(--space-4); display: flex; justify-content: space-between; align-items: center; gap: var(--space-4); flex-wrap: wrap; }
+  .hero .label { font-size: var(--font-size-sm); color: var(--status-pending); font-weight: 700; }
+  .hero .title { font-size: var(--font-size-xl); font-weight: 700; }
+  .queue { list-style: none; padding: 0; margin: var(--space-3) 0 0; }
+  .queue li { display: flex; gap: var(--space-3); align-items: center; padding: var(--space-2) var(--space-3); border-bottom: 1px solid var(--color-border); font-size: var(--font-size-sm); }
+  .queue .ord { width: 24px; height: 24px; border-radius: 50%; background: var(--color-surface); border: 1px solid var(--color-border); display: inline-flex; align-items: center; justify-content: center; font-weight: 700; }
+  details { margin-top: var(--space-3); border: 1px solid var(--color-border); border-radius: var(--radius); padding: var(--space-2) var(--space-3); }
+  summary { cursor: pointer; font-weight: 600; }
+</style>
+</head>
+<body>
+<header>
+  <h1>工作清單：三種替代方案</h1>
+  <p>同一套設計系統、同一份模擬資料（登入：醫師甲）。比較標準：醫師「快速找到下一份要打的報告」。按鈕會開啟雛型的打報告畫面。</p>
+</header>
+<main>
+  <div class="tabs" role="tablist" aria-label="替代方案">
+    <button role="tab" id="tab-A" aria-selected="true" aria-controls="view">A 以表格清單為主</button>
+    <button role="tab" id="tab-B" aria-selected="false" aria-controls="view">B 以類別卡片為主</button>
+    <button role="tab" id="tab-C" aria-selected="false" aria-controls="view">C 以待辦佇列為主</button>
+  </div>
+  <div class="layout">
+    <section class="panel" id="view" role="tabpanel"></section>
+    <aside class="panel note" id="note"></aside>
+  </div>
+</main>
+<script>
+(function () {
+  'use strict';
+  var ME = '醫師甲';
+  var EXAMS = [{"exam_no": "R0001", "exam_at": "2026-11-02 08:40", "category": "健檢胸部X光", "exam_name": "胸部X光數位攝影", "order_dept": "健檢中心", "order_doctor": "醫師丁", "patient_name": "測試一號", "patient_id": "TEST000001", "sex": "男", "age": 45, "order_status": "正常", "image_taken": true, "report_status": "未完成", "report_doctor": "醫師甲"}, {"exam_no": "R0002", "exam_at": "2026-11-02 09:05", "category": "健檢乳攝", "exam_name": "2D+3D乳房攝影", "order_dept": "健檢中心", "order_doctor": "醫師丁", "patient_name": "測試二號", "patient_id": "TEST000002", "sex": "女", "age": 52, "order_status": "正常", "image_taken": true, "report_status": "未完成", "report_doctor": "醫師甲"}, {"exam_no": "R0003", "exam_at": "2026-11-02 09:30", "category": "門診放射", "exam_name": "胸部X光（正面）", "order_dept": "肝膽腸胃科", "order_doctor": "醫師戊", "patient_name": "測試三號", "patient_id": "TEST000003", "sex": "男", "age": 63, "order_status": "正常", "image_taken": true, "report_status": "已完成", "report_doctor": "醫師甲"}, {"exam_no": "R0004", "exam_at": "2026-11-02 10:10", "category": "門診放射", "exam_name": "腹部X光", "order_dept": "肝膽腸胃科", "order_doctor": "醫師戊", "patient_name": "測試四號", "patient_id": "TEST000004", "sex": "女", "age": 58, "order_status": "已DC", "image_taken": true, "report_status": "未完成", "report_doctor": "醫師甲"}, {"exam_no": "R0005", "exam_at": "2026-11-02 10:45", "category": "健檢胸部X光", "exam_name": "胸部X光數位攝影", "order_dept": "健檢中心", "order_doctor": "醫師丁", "patient_name": "測試五號", "patient_id": "TEST000005", "sex": "女", "age": 38, "order_status": "正常", "image_taken": true, "report_status": "已認證", "report_doctor": "醫師丙"}, {"exam_no": "R0006", "exam_at": "2026-11-02 11:20", "category": "心臟超音波", "exam_name": "心臟超音波", "order_dept": "心臟內科", "order_doctor": "醫師己", "patient_name": "測試六號", "patient_id": "TEST000006", "sex": "男", "age": 71, "order_status": "正常", "image_taken": true, "report_status": "未完成", "report_doctor": null}, {"exam_no": "R0007", "exam_at": "2026-11-03 08:50", "category": "頸動脈超音波", "exam_name": "頸動脈超音波", "order_dept": "神經內科", "order_doctor": "醫師庚", "patient_name": "測試七號", "patient_id": "TEST000007", "sex": "女", "age": 66, "order_status": "正常", "image_taken": true, "report_status": "未完成", "report_doctor": "醫師丙"}, {"exam_no": "R0008", "exam_at": "2026-11-03 09:15", "category": "健檢乳攝", "exam_name": "2D+3D乳房攝影", "order_dept": "健檢中心", "order_doctor": "醫師丁", "patient_name": "測試八號", "patient_id": "TEST000008", "sex": "女", "age": 47, "order_status": "已DC", "image_taken": false, "report_status": "未完成", "report_doctor": null}, {"exam_no": "R0009", "exam_at": "2026-11-03 09:40", "category": "健檢胸部X光", "exam_name": "胸部X光數位攝影", "order_dept": "健檢中心", "order_doctor": "醫師丁", "patient_name": "測試九號", "patient_id": "TEST000009", "sex": "男", "age": 55, "order_status": "正常", "image_taken": false, "report_status": "未完成", "report_doctor": null}, {"exam_no": "R0010", "exam_at": "2026-11-03 10:20", "category": "門診放射", "exam_name": "胸部X光（正面）", "order_dept": "家醫科", "order_doctor": "醫師辛", "patient_name": "測試十號", "patient_id": "TEST000010", "sex": "男", "age": 49, "order_status": "正常", "image_taken": true, "report_status": "未完成", "report_doctor": "醫師甲"}];
+  function h(tag, attrs) {
+    var el = document.createElement(tag);
+    Object.keys(attrs || {}).forEach(function (k) { var v = attrs[k];
+      if (k === 'class') el.className = v; else if (k === 'text') el.textContent = v; else if (v != null) el.setAttribute(k, v); });
+    for (var i = 2; i < arguments.length; i++) { var c = arguments[i]; if (c == null) continue; el.appendChild(typeof c === 'string' ? document.createTextNode(c) : c); }
+    return el;
+  }
+  var mine = EXAMS.filter(function (e) { return e.report_doctor === ME; }).sort(function (a, b) { return a.exam_at.localeCompare(b.exam_at); });
+  function isDc(e) { return e.order_status === '已DC'; }
+  function todo(e) { return e.report_status === '未完成' && !isDc(e) && e.image_taken; }
+  var pending = mine.filter(todo);
+  var cats = ['健檢胸部X光', '健檢乳攝', '門診放射', '心臟超音波', '頸動脈超音波'];
+  function tag(e) {
+    if (isDc(e)) return h('span', { class: 'tag tag-dc' }, '⊘ 醫令已DC');
+    var m = { '未完成': ['pending', '○'], '已完成': ['done', '◐'], '已認證': ['certified', '✔'] }[e.report_status];
+    return h('span', { class: 'tag tag-' + m[0] }, m[1] + ' ' + e.report_status);
+  }
+  function go(e, label, primary) { return h('a', { class: 'btn btn-sm' + (primary ? ' btn-primary' : ''), href: 'index.html#/report/' + e.exam_no }, label); }
+
+  var VIEWS = {
+    A: {
+      render: function (v) {
+        v.appendChild(h('div', { class: 'sumline' }, h('span', { class: 'big', text: String(pending.length) }), h('span', null, '份未完成'),
+          h('span', { class: 'muted', text: cats.map(function (c) { var n = pending.filter(function (e) { return e.category === c; }).length; return n ? c + ' ' + n : null; }).filter(Boolean).join('・') })));
+        var tb = h('tbody');
+        mine.forEach(function (e) {
+          tb.appendChild(h('tr', { class: isDc(e) ? 'x' : (e.report_status === '未完成' ? 'p' : 'd') },
+            h('td', { text: e.exam_no }), h('td', { text: e.exam_at }), h('td', { text: e.category }), h('td', { text: e.patient_name }),
+            h('td', { text: e.order_doctor }), h('td', null, tag(e)), h('td', null, go(e, todo(e) ? '打報告' : '查看', todo(e)))));
+        });
+        v.appendChild(h('div', { style: 'overflow-x:auto' }, h('table', null,
+          h('thead', null, h('tr', null, h('th', { text: '單號' }), h('th', { text: '檢查日期時間' }), h('th', { text: '檢查類別' }), h('th', { text: '病人' }), h('th', { text: '開單醫師' }), h('th', { text: '狀態' }), h('th', { text: '操作' }))), tb)));
+      },
+      note: {
+        title: 'A 以表格清單為主（= 第一版）', idea: '所有資訊攤開在一張表，靠篩選與排序找單。', steps: '找到下一份：掃視表格 → 點「打報告」（1 次點擊，但要先用眼睛找）',
+        pros: ['最符合醫師甲「搜尋條件在上方、每個欄位可排序」的要求〔訪談一〕', '資訊密度高，容易核對單號、病人與開單醫師', '已DC、已完成也在同一處，方便核對分派〔補充 #4〕'],
+        cons: ['「下一份是哪一份」要自己判斷', '單多時，未完成會被已完成的列稀釋']
+      }
+    },
+    B: {
+      render: function (v) {
+        var wrap = h('div', { class: 'cards' });
+        cats.forEach(function (c) {
+          var all = mine.filter(function (e) { return e.category === c; }); if (!all.length) return;
+          var p = all.filter(todo);
+          var card = h('div', { class: 'cat' + (p.length ? '' : ' zero') }, h('h3', null, c, h('span', { class: 'n', text: String(p.length) })),
+            h('div', { class: 'muted', text: '未完成 ' + p.length + '／共 ' + all.length }));
+          all.forEach(function (e) { card.appendChild(h('div', { class: 'mini' }, h('span', null, e.exam_no + ' ' + e.patient_name), tag(e), go(e, todo(e) ? '打' : '看', todo(e)))); });
+          wrap.appendChild(card);
+        });
+        v.appendChild(h('div', { class: 'sumline' }, h('span', { class: 'big', text: String(pending.length) }), h('span', null, '份未完成（依檢查類別分組）')));
+        v.appendChild(wrap);
+      },
+      note: {
+        title: 'B 以類別卡片為主', idea: '依檢查類別（＝報告範本）分組，一次打同一種範本的報告。', steps: '找到下一份：選類別卡片 → 點卡片內的第一筆（1–2 次點擊）',
+        pros: ['分項數量最醒目，直接回應「要有分項數量」〔補充 #2〕', '同類別連續打，範本與片語不用切換（**推測**：可能較快）'],
+        cons: ['無法依欄位排序、不易依日期或開單醫師找單，違背〔訪談一〕的搜尋需求', '跨類別的先後順序（哪份最早檢查）看不出來', '類別多時卡片會很長']
+      }
+    },
+    C: {
+      render: function (v) {
+        var next = pending[0];
+        v.appendChild(h('div', { class: 'hero' },
+          h('div', null, h('div', { class: 'label', text: '下一份要打的報告（依檢查時間最早）' }),
+            h('div', { class: 'title', text: next.exam_no + '　' + next.exam_name }),
+            h('div', { class: 'muted', text: next.patient_name + '（' + next.sex + '／' + next.age + '）・' + next.patient_id + '・' + next.exam_at + '・開單 ' + next.order_doctor })),
+          h('div', { style: 'text-align:right' }, h('div', null, h('span', { class: 'big', text: String(pending.length) }), ' 份待打'), h('div', { style: 'margin-top:8px' }, go(next, '開始打報告 →', true)))));
+        var q = h('ol', { class: 'queue', 'aria-label': '接下來的報告' });
+        pending.slice(1).forEach(function (e, i) { q.appendChild(h('li', null, h('span', { class: 'ord', text: String(i + 2) }), h('span', { style: 'flex:1' }, e.exam_no + '　' + e.category + '　' + e.patient_name), h('span', { class: 'muted', text: e.exam_at }))); });
+        v.appendChild(h('h3', { text: '接下來' }));
+        v.appendChild(q);
+        var others = mine.filter(function (e) { return !todo(e); });
+        var d = h('details', null, h('summary', null, '其他（已完成、已認證、已DC）' + others.length + ' 筆'));
+        others.forEach(function (e) { d.appendChild(h('div', { class: 'mini' }, h('span', null, e.exam_no + ' ' + e.patient_name), tag(e), go(e, '查看'))); });
+        v.appendChild(d);
+      },
+      note: {
+        title: 'C 以待辦佇列為主', idea: '系統直接排好順序，醫師只要按「開始」。', steps: '找到下一份：直接按「開始打報告」（1 次點擊，不需要找）',
+        pros: ['到下一份的步驟最少，最貼近「儲存後跳下一筆」的工作方式〔補充 #8〕', '待打數量與下一份同時出現在最上方'],
+        cons: ['搜尋、排序、核對分派的能力弱，醫師甲要的篩選條件〔訪談一〕放不進來', '順序是系統決定的，醫師想先打急件時需要另外處理', '已DC等例外被收進折疊區，容易漏看']
+      }
+    }
+  };
+
+  function show(k) {
+    ['A', 'B', 'C'].forEach(function (x) { document.getElementById('tab-' + x).setAttribute('aria-selected', String(x === k)); });
+    var v = document.getElementById('view'); v.textContent = ''; v.setAttribute('aria-labelledby', 'tab-' + k);
+    VIEWS[k].render(v);
+    var n = VIEWS[k].note, note = document.getElementById('note'); note.textContent = '';
+    function list(items) { var u = h('ul'); items.forEach(function (t) { var li = h('li'); li.innerHTML = t.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>'); u.appendChild(li); }); return u; }
+    note.appendChild(h('h2', { text: n.title }));
+    note.appendChild(h('p', { text: n.idea }));
+    note.appendChild(h('h3', { text: '快速找到下一份' })); note.appendChild(h('p', { text: n.steps }));
+    note.appendChild(h('h3', { text: '優點' })); note.appendChild(list(n.pros));
+    note.appendChild(h('h3', { text: '缺點' })); note.appendChild(list(n.cons));
+    try { history.replaceState(null, '', '#' + k); } catch (e) {}
+  }
+  ['A', 'B', 'C'].forEach(function (k) { document.getElementById('tab-' + k).addEventListener('click', function () { show(k); }); });
+  show(/^#[ABC]$/.test(location.hash) ? location.hash.slice(1) : 'A');
+})();
+</script>
+</body>
+</html>
